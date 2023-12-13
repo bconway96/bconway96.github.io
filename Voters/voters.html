@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+	
+	<title>Colorado Counties Voter Turnout</title>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+
+
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+		}
+		#map { width: 100%; height: 100%;}
+		.info { padding: 5px 7px; font: 14px/16px Garamond, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 4px;} 
+		.info h4 { margin: 0 0 4px; color: #777; }
+		.legend { text-align: left; line-height: 18px; color: #555; } 
+		.legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
+	</style>
+</head>
+<body>
+
+<div id='map'></div>
+
+	<script type="text/javascript" src="Voters.js"></script>
+	<script type="text/javascript" src="Voters2020.js"></script>
+
+	<script type="text/javascript">
+
+	var map = L.map('map').setView([39, -105], 7.4);
+
+	var opens = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 19,
+	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+	}).addTo(map);
+	
+	var info = L.control();
+
+	info.onAdd = function (map) {
+		this._div = L.DomUtil.create('div', 'info');
+		this.update();
+		return this._div;
+	};
+
+	info.update = function (props) {
+		this._div.innerHTML = '<h4>Voter Turnout in 2020 and 2022</h4><h5>2020 was a presidential election that saw record breaking turnout.<br>2022 was a midterm election.<br>Data is based off of percentage of eligable voters who turned in a ballot.</h5>';
+	};
+
+	info.addTo(map);
+	
+	function getColor(d) {
+		return 	d > 60 ? '#810f7c' :
+				d > 50 ? '#8856a7' :
+				d > 40 ? '#8c96c6' :
+				d > 30 ? '#b3cde3' :
+				d > 20 ? '#edf8fb' :
+						'#edf8fb';
+	}
+
+
+
+	function style(feature) {
+		return {
+			weight: 1,
+			opacity: 1,
+			color: 'white',
+			dashArray: '3',
+			fillOpacity: 0.8,
+			fillColor: getColor(feature.properties.TruePerc)
+		};
+	}
+
+	function highlightFeature(e) {
+		var layer = e.target;
+
+		layer.setStyle({
+			weight: 3,
+			color: '#969696',
+			dashArray: '',
+			fillOpacity: 0.7
+		});
+
+		if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+			layer.bringToFront();
+		}
+
+		info.update(layer.feature.properties);
+	}
+
+	function resetHighlight(e) {
+		geojson.resetStyle(e.target);
+		info.update();
+	}
+
+
+
+	var geojsonC = L.geoJson(cnty, {
+		pointToLayer: function(geoJsonPoint, latlng) {
+                        return L.circleMarker(latlng);},
+						onEachFeature: onEachFeature,
+						style:style
+	}).addTo(map);
+	
+	
+	
+	info.addTo(map);
+	
+	function getColor(d) {
+		return 	d > 60 ? '#810f7c' :
+				d > 50 ? '#8856a7' :
+				d > 40 ? '#8c96c6' :
+				d > 30 ? '#b3cde3' :
+				d > 20 ? '#edf8fb' :
+						'#edf8fb';
+	}
+
+
+
+	function style(feature) {
+		return {
+			weight: 1,
+			opacity: 1,
+			color: 'white',
+			dashArray: '3',
+			fillOpacity: 0.8,
+			fillColor: getColor(feature.properties.TruePerc)
+		};
+	}
+
+	function highlightFeature(e) {
+		var layer = e.target;
+
+		layer.setStyle({
+			weight: 3,
+			color: '#969696',
+			dashArray: '',
+			fillOpacity: 0.7
+		});
+
+		if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+			layer.bringToFront();
+		}
+
+		info.update(layer.feature.properties);
+	}
+
+	function resetHighlight(e) {
+		geojson.resetStyle(e.target);
+		info.update();
+	}
+
+	
+
+	function onEachFeature(feature, layer) {
+		layer.on({
+			mouseover: highlightFeature,
+			mouseout: resetHighlight
+		});
+		layer.bindTooltip('<b>'+feature.properties.FULL+'</b><br>'+ feature.properties.TruePerc + "%")
+;
+	}
+	
+	
+	
+	var geojson = L.geoJson(cnty20, {
+		pointToLayer: function(geoJsonPoint, latlng) {
+                        return L.circleMarker(latlng);},
+						onEachFeature: onEachFeature,
+						style:style
+	}).addTo(map);
+	
+	var baseLayers = {
+    "Street View": opens,
+	
+	};
+
+	var overlays = {
+		"2022 Voter Turnout": geojsonC, 
+		"2020 Voter Turnout": geojson
+		
+
+	};
+	
+	var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+
+    var div = L.DomUtil.create('div', 'info legend'),
+        grades = [20, 30, 40, 50, 60],
+        labels = ['Percent Turnout'];
+
+    // loop through our density intervals and generate a label with a colored square for each interval
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+
+    return div;
+};
+
+legend.addTo(map);
+
+
+	L.control.layers(baseLayers, overlays, {collapsed: false}).addTo(map);
+	
+	L.control.scale().addTo(map);
+
+
+
+
+
+</script>
+
+
+
+</body>
+</html>
